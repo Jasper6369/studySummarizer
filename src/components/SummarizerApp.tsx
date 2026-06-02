@@ -1,9 +1,18 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  addHistoryEntry,
+  clearHistory,
+  createHistoryEntry,
+  loadHistory,
+  removeHistoryEntry,
+  type HistoryEntry,
+} from "@/lib/history";
 import type { SummaryPurpose } from "@/lib/summary-purposes";
 import { getPurposeOption } from "@/lib/summary-purposes";
 import type { DisplayLanguage, SummarizeResponse } from "@/lib/types";
+import { HistoryPanel } from "./HistoryPanel";
 import { PurposeSelector } from "./PurposeSelector";
 import { ResultPanel } from "./ResultPanel";
 
@@ -38,6 +47,8 @@ export function SummarizerApp() {
   const [result, setResult] = useState<SummarizeResponse | null>(null);
   const [resultLanguage, setResultLanguage] = useState<DisplayLanguage>("zh");
   const [fileName, setFileName] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const dragCounterRef = useRef(0);
@@ -45,6 +56,52 @@ export function SummarizerApp() {
   const charCount = text.length;
   const isBusy = loading || extracting;
   const canSubmit = charCount >= MIN_CHARS && !isBusy;
+
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
+
+  const scrollToResults = useCallback(() => {
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }, []);
+
+  const handleSelectHistory = useCallback(
+    (entry: HistoryEntry) => {
+      setActiveHistoryId(entry.id);
+      setResult(entry.result);
+      setResultLanguage(entry.resultLanguage);
+      setPurpose(entry.purpose);
+      setFileName(entry.fileName);
+      setError(null);
+      scrollToResults();
+    },
+    [scrollToResults]
+  );
+
+  const handleDeleteHistory = useCallback(
+    (id: string) => {
+      setHistory(removeHistoryEntry(id));
+      if (activeHistoryId === id) {
+        setActiveHistoryId(null);
+        setResult(null);
+      }
+    },
+    [activeHistoryId]
+  );
+
+  const handleClearHistory = useCallback(() => {
+    if (!window.confirm("确定清空全部历史记录吗？")) return;
+    setHistory(clearHistory());
+    setActiveHistoryId(null);
+    setResult(null);
+  }, []);
+
+  const activeEntry =
+    activeHistoryId != null
+      ? history.find((entry) => entry.id === activeHistoryId)
+      : undefined;
 
   const processFile = useCallback(async (file: File) => {
     const ext = getFileExtension(file.name);
@@ -181,6 +238,7 @@ export function SummarizerApp() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setActiveHistoryId(null);
 
     try {
       const response = await fetch("/api/summarize", {
@@ -207,9 +265,17 @@ export function SummarizerApp() {
         language === "auto" ? detectLanguage(summary.summary) : language;
       setResultLanguage(displayLang);
 
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      const entry = createHistoryEntry({
+        text,
+        fileName,
+        purpose,
+        resultLanguage: displayLang,
+        result: summary,
+      });
+      setHistory(addHistoryEntry(entry));
+      setActiveHistoryId(entry.id);
+
+      scrollToResults();
     } catch (err) {
       setError(err instanceof Error ? err.message : "总结失败，请稍后重试。");
     } finally {
@@ -228,6 +294,16 @@ export function SummarizerApp() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <HistoryPanel
+          entries={history}
+          activeId={activeHistoryId}
+          onSelect={handleSelectHistory}
+          onDelete={handleDeleteHistory}
+          onClearAll={handleClearHistory}
+        />
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div
           className={`overflow-hidden rounded-2xl border bg-white shadow-card transition-colors ${
@@ -421,6 +497,12 @@ export function SummarizerApp() {
 
       {result && !loading && (
         <div ref={resultsRef} className="mt-8">
+          {activeEntry?.sourceExcerpt && (
+            <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-600">
+              <span className="font-medium text-slate-700">原文摘要：</span>
+              {activeEntry.sourceExcerpt}
+            </div>
+          )}
           <ResultPanel
             result={result}
             initialLanguage={resultLanguage}
