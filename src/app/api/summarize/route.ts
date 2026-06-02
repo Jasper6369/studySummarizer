@@ -26,7 +26,11 @@ export async function POST(request: Request) {
       error instanceof Error ? error.message : "An unexpected error occurred";
 
     const status =
-      message.includes("API_KEY is not configured") ? 503 : 500;
+      message.includes("未配置") ||
+      message.includes("尚未配置") ||
+      message.includes("API_KEY is not configured")
+        ? 503
+        : 500;
 
     return NextResponse.json({ error: message }, { status });
   }

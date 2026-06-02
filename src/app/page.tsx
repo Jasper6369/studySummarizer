@@ -1,4 +1,3 @@
-import { SharePanel } from "@/components/SharePanel";
 import { SummarizerApp } from "@/components/SummarizerApp";
 
 export default function Home() {
@@ -48,8 +47,6 @@ export default function Home() {
       <main>
         <SummarizerApp />
       </main>
-
-      <SharePanel />
 
       {/* Footer */}
       <footer className="border-t border-slate-200/80 py-8 text-center text-xs text-slate-400">

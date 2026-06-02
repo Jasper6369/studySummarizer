@@ -209,7 +209,7 @@ export function ResultPanel({
             title="Keywords"
             subtitle={displayLanguage === "zh" ? "关键词" : "Keywords"}
             icon={<TagIcon />}
-            accent="amber"
+            accent="brand"
             onCopy={() =>
               copyText("keywords", displayResult.keywords.join(", "))
             }
@@ -219,7 +219,7 @@ export function ResultPanel({
               {displayResult.keywords.map((keyword, i) => (
                 <span
                   key={i}
-                  className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200/60"
+                  className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-800 ring-1 ring-brand-200/60"
                 >
                   {keyword}
                 </span>

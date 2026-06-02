@@ -13,8 +13,11 @@ function getOcrSpaceApiKey(): string {
   const key = process.env.OCR_SPACE_API_KEY?.trim();
 
   if (!key || key.includes("your-ocr-space-key")) {
+    const isProduction = Boolean(process.env.VERCEL);
     throw new Error(
-      "OCR_SPACE_API_KEY 未配置。请在 .env.local 中添加 Key（免费获取：https://ocr.space/ocrapi/freekey）"
+      isProduction
+        ? "服务端 OCR 功能尚未配置，请联系网站管理员在 Vercel 中设置 OCR_SPACE_API_KEY 后重新部署。"
+        : "OCR_SPACE_API_KEY 未配置。请在 .env.local 中添加 Key（免费获取：https://ocr.space/ocrapi/freekey）"
     );
   }
 

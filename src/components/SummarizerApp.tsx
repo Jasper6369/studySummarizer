@@ -327,7 +327,7 @@ export function SummarizerApp() {
                   charCount < MIN_CHARS
                     ? "text-slate-400"
                     : charCount > MAX_CHARS * 0.9
-                      ? "text-amber-600"
+                      ? "text-rose-600"
                       : "text-slate-500"
                 }`}
               >
