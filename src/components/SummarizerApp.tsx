@@ -378,13 +378,13 @@ export function SummarizerApp() {
                 setError(null);
               }}
               placeholder="在这里粘贴你的文章、阅读材料或学习笔记…&#10;&#10;也可以拖拽或上传 PDF / Word 文档；扫描版 PDF 会使用云端 OCR 自动识别"
-              rows={12}
+              rows={10}
               className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm leading-relaxed text-slate-800 placeholder:text-slate-400 focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100"
               disabled={isBusy}
             />
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -403,8 +403,13 @@ export function SummarizerApp() {
                     ? extractStatus ?? "正在读取文档…"
                     : "选择文件"}
                 </label>
-                <span className="hidden text-xs text-slate-400 sm:inline">
-                  或拖拽文件到上方区域
+                <PurposeSelector
+                  value={purpose}
+                  onChange={setPurpose}
+                  disabled={isBusy}
+                />
+                <span className="hidden text-xs text-slate-400 lg:inline">
+                  或拖拽到上方
                 </span>
                 {extractNotice && !extracting && (
                   <span className="text-xs text-emerald-600">{extractNotice}</span>
@@ -436,13 +441,7 @@ export function SummarizerApp() {
           </div>
         </div>
 
-        <PurposeSelector
-          value={purpose}
-          onChange={setPurpose}
-          disabled={isBusy}
-        />
-
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-card sm:px-5">
           <div className="flex flex-wrap items-center gap-4">
             <label className="flex cursor-pointer items-center gap-2.5">
               <input
@@ -476,7 +475,7 @@ export function SummarizerApp() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {loading ? (
               <>
