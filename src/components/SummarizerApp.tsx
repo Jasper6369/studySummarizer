@@ -328,7 +328,7 @@ export function SummarizerApp() {
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
         <div
-          className={`rounded-2xl border bg-white shadow-card transition-colors ${
+          className={`overflow-visible rounded-2xl border bg-white shadow-card transition-colors ${
             isDragging
               ? "border-brand-400 ring-2 ring-brand-100"
               : "border-slate-200/80"
@@ -356,13 +356,7 @@ export function SummarizerApp() {
             </div>
           </div>
 
-          <PurposeSelector
-            value={purpose}
-            onChange={setPurpose}
-            disabled={isBusy}
-          />
-
-          <div className="relative p-5 sm:p-6">
+          <div className="relative overflow-visible p-5 sm:p-6">
             {isDragging && (
               <div className="pointer-events-none absolute inset-3 z-10 flex items-center justify-center rounded-xl border-2 border-dashed border-brand-400 bg-brand-50/90">
                 <div className="text-center">
@@ -409,6 +403,12 @@ export function SummarizerApp() {
                     ? extractStatus ?? "正在读取文档…"
                     : "选择文件"}
                 </label>
+
+                <PurposeSelector
+                  value={purpose}
+                  onChange={setPurpose}
+                  disabled={isBusy}
+                />
 
                 <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5">
                   <input
