@@ -5,7 +5,7 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-soft">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -27,18 +27,19 @@ export default function Home() {
 
       {/* Hero */}
       <section className="border-b border-slate-100 bg-gradient-to-b from-brand-50/60 to-slate-50">
-        <div className="mx-auto max-w-4xl px-4 py-10 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-10 text-center sm:px-6 lg:px-8">
           <h2 className="text-balance text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             快速理解任何阅读材料
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-balance text-sm leading-relaxed text-slate-600 sm:text-base">
-            粘贴文章或上传 PDF、Word 文档，AI 自动提取摘要、要点、关键词和通俗解释，帮你高效完成课前预习和课后复习。
+            粘贴文章或上传 PDF、Word、图片，AI 自动提取摘要、要点、关键词和通俗解释，并支持翻译后继续提问。
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500">
             <FeatureBadge>📖 阅读材料</FeatureBadge>
             <FeatureBadge>📝 课堂文章</FeatureBadge>
             <FeatureBadge>🔬 论文片段</FeatureBadge>
             <FeatureBadge>📄 PDF / Word</FeatureBadge>
+            <FeatureBadge>🖼️ 图片 OCR</FeatureBadge>
           </div>
         </div>
       </section>

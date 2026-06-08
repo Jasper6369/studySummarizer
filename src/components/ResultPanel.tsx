@@ -3,17 +3,20 @@
 import { useCallback, useEffect, useState } from "react";
 import type { PurposeOption } from "@/lib/summary-purposes";
 import type { DisplayLanguage, SummarizeResponse } from "@/lib/types";
+import { ChatPanel } from "./ChatPanel";
 
 type ResultPanelProps = {
   result: SummarizeResponse;
   initialLanguage: DisplayLanguage;
   purpose?: PurposeOption;
+  sourceContext?: string;
 };
 
 export function ResultPanel({
   result,
   initialLanguage,
   purpose,
+  sourceContext = "",
 }: ResultPanelProps) {
   const [displayLanguage, setDisplayLanguage] =
     useState<DisplayLanguage>(initialLanguage);
@@ -252,6 +255,14 @@ export function ResultPanel({
             </ResultCard>
           </div>
         )}
+      </div>
+
+      <div className="mt-4">
+        <ChatPanel
+          sourceContext={sourceContext}
+          summary={displayResult}
+          language={displayLanguage}
+        />
       </div>
     </div>
   );

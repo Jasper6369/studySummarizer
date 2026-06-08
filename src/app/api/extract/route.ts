@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   extractTextFromFile,
   getFileExtension,
+  isImageExtension,
   isSupportedExtension,
   MAX_FILE_SIZE,
 } from "@/lib/extract-text";
@@ -46,9 +47,11 @@ export async function POST(request: Request) {
       truncated: result.truncated,
       message:
         result.method === "ocr"
-          ? result.truncated
-            ? `已通过云端 OCR 识别前 ${result.pagesProcessed} 页（文档共 ${result.totalPages} 页）`
-            : `已通过云端 OCR 识别扫描版 PDF，共 ${result.pagesProcessed} 页`
+          ? isImageExtension(ext)
+            ? "已通过云端 OCR 识别图片中的文字"
+            : result.truncated
+              ? `已通过云端 OCR 识别前 ${result.pagesProcessed} 页（文档共 ${result.totalPages} 页）`
+              : `已通过云端 OCR 识别扫描版 PDF，共 ${result.pagesProcessed} 页`
           : undefined,
     });
   } catch (error) {

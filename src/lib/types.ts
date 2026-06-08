@@ -33,3 +33,19 @@ export type DisplayLanguage = "zh" | "en";
 export type ApiError = {
   error: string;
 };
+
+export const ChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(4000),
+});
+
+export const ChatRequestSchema = z.object({
+  question: z.string().min(1).max(1000),
+  history: z.array(ChatMessageSchema).max(20).default([]),
+  sourceContext: z.string().max(12000).default(""),
+  summary: SummarizeResponseSchema,
+  language: z.enum(["zh", "en"]),
+});
+
+export type ChatMessage = z.infer<typeof ChatMessageSchema>;
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;

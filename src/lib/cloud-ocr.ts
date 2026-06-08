@@ -116,10 +116,14 @@ async function callOcrSpace(formData: FormData): Promise<string> {
   throw new Error(getErrorMessage(result, response.status));
 }
 
-function buildImageFormData(imageBuffer: Buffer): FormData {
+function buildImageFormData(
+  imageBuffer: Buffer,
+  mime = "image/png",
+  filetype = "PNG"
+): FormData {
   if (imageBuffer.length > MAX_IMAGE_BYTES) {
     throw new Error(
-      `PDF 页面图片过大（${Math.round(imageBuffer.length / 1024)}KB），OCR.space 免费版单页限制 1MB。请上传页数更少或分辨率更低的 PDF。`
+      `图片过大（${Math.round(imageBuffer.length / 1024)}KB），OCR.space 免费版单张限制约 1MB。请压缩后重试。`
     );
   }
 
@@ -127,19 +131,54 @@ function buildImageFormData(imageBuffer: Buffer): FormData {
   formData.append("apikey", getOcrSpaceApiKey());
   formData.append(
     "base64Image",
-    `data:image/png;base64,${imageBuffer.toString("base64")}`
+    `data:${mime};base64,${imageBuffer.toString("base64")}`
   );
   formData.append("language", getOcrLanguage());
   formData.append("isOverlayRequired", "false");
   formData.append("OCREngine", "2");
-  formData.append("filetype", "PNG");
+  formData.append("filetype", filetype);
   formData.append("detectOrientation", "true");
 
   return formData;
 }
 
+function getImageOcrMeta(ext: string): { mime: string; filetype: string } {
+  switch (ext.toLowerCase()) {
+    case ".jpg":
+    case ".jpeg":
+      return { mime: "image/jpeg", filetype: "JPG" };
+    case ".webp":
+      return { mime: "image/webp", filetype: "WEBP" };
+    case ".gif":
+      return { mime: "image/gif", filetype: "GIF" };
+    case ".bmp":
+      return { mime: "image/bmp", filetype: "BMP" };
+    case ".png":
+    default:
+      return { mime: "image/png", filetype: "PNG" };
+  }
+}
+
+export async function ocrImageFile(
+  imageBuffer: Buffer,
+  ext: string
+): Promise<string> {
+  const meta = getImageOcrMeta(ext);
+  return callOcrSpace(buildImageFormData(imageBuffer, meta.mime, meta.filetype));
+}
+
+function buildPdfPageFormData(imageBuffer: Buffer): FormData {
+  if (imageBuffer.length > MAX_IMAGE_BYTES) {
+    throw new Error(
+      `PDF 页面图片过大（${Math.round(imageBuffer.length / 1024)}KB），OCR.space 免费版单页限制 1MB。请上传页数更少或分辨率更低的 PDF。`
+    );
+  }
+
+  return buildImageFormData(imageBuffer, "image/png", "PNG");
+}
+
 export async function ocrImageBuffer(imageBuffer: Buffer): Promise<string> {
-  return callOcrSpace(buildImageFormData(imageBuffer));
+  return callOcrSpace(buildPdfPageFormData(imageBuffer));
 }
 
 export async function ocrPdfBuffer(pdfBuffer: Buffer): Promise<string> {

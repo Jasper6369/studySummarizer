@@ -16,7 +16,20 @@ import { HistoryPanel } from "./HistoryPanel";
 import { PurposeSelector } from "./PurposeSelector";
 import { ResultPanel } from "./ResultPanel";
 
-const ACCEPTED_TYPES = [".txt", ".md", ".markdown", ".pdf", ".doc", ".docx"];
+const ACCEPTED_TYPES = [
+  ".txt",
+  ".md",
+  ".markdown",
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
+  ".bmp",
+];
 const TEXT_TYPES = [".txt", ".md", ".markdown"];
 const MAX_CHARS = 50000;
 const MIN_CHARS = 50;
@@ -103,6 +116,11 @@ export function SummarizerApp() {
       ? history.find((entry) => entry.id === activeHistoryId)
       : undefined;
 
+  const sourceContext = (text.trim() || activeEntry?.sourceExcerpt || "").slice(
+    0,
+    8000
+  );
+
   const processFile = useCallback(async (file: File) => {
     const ext = getFileExtension(file.name);
 
@@ -141,7 +159,9 @@ export function SummarizerApp() {
     setExtractStatus(
       ext === ".pdf"
         ? "正在云端 OCR 识别 PDF 文字…"
-        : "正在读取文档…"
+        : [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"].includes(ext)
+          ? "正在识别图片中的文字…"
+          : "正在读取文档…"
     );
 
     try {
@@ -293,7 +313,7 @@ export function SummarizerApp() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
         <HistoryPanel
           entries={history}
@@ -304,7 +324,9 @@ export function SummarizerApp() {
         />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
         <div
           className={`overflow-hidden rounded-2xl border bg-white shadow-card transition-colors ${
             isDragging
@@ -323,7 +345,7 @@ export function SummarizerApp() {
                   粘贴或上传内容
                 </h2>
                 <p className="mt-0.5 text-sm text-slate-500">
-                  支持拖拽上传 · PDF（含扫描版）· Word · 文本
+                  支持拖拽上传 · PDF · Word · 图片 OCR · 文本
                 </p>
               </div>
               {fileName && (
@@ -342,7 +364,7 @@ export function SummarizerApp() {
                     松开鼠标即可上传
                   </p>
                   <p className="mt-1 text-xs text-brand-600">
-                    支持 .pdf .docx .doc .txt .md
+                    支持 .pdf .docx .jpg .png .webp .txt
                   </p>
                 </div>
               </div>
@@ -469,47 +491,64 @@ export function SummarizerApp() {
             )}
           </button>
         </div>
-      </form>
+          </form>
 
-      {error && (
-        <div className="mt-6 animate-fade-in-up rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {loading && (
-        <div className="mt-8 space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse-soft rounded-2xl border border-slate-200/80 bg-white p-6 shadow-card"
-            >
-              <div className="mb-3 h-4 w-32 rounded bg-slate-200" />
-              <div className="space-y-2">
-                <div className="h-3 w-full rounded bg-slate-100" />
-                <div className="h-3 w-5/6 rounded bg-slate-100" />
-                <div className="h-3 w-4/6 rounded bg-slate-100" />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {result && !loading && (
-        <div ref={resultsRef} className="mt-8">
-          {activeEntry?.sourceExcerpt && (
-            <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-600">
-              <span className="font-medium text-slate-700">原文摘要：</span>
-              {activeEntry.sourceExcerpt}
+          {error && (
+            <div className="animate-fade-in-up rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
             </div>
           )}
-          <ResultPanel
-            result={result}
-            initialLanguage={resultLanguage}
-            purpose={getPurposeOption(purpose)}
-          />
         </div>
-      )}
+
+        <div
+          ref={resultsRef}
+          className="space-y-4 lg:sticky lg:top-6 lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto"
+        >
+          {loading && (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse-soft rounded-2xl border border-slate-200/80 bg-white p-6 shadow-card"
+                >
+                  <div className="mb-3 h-4 w-32 rounded bg-slate-200" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-full rounded bg-slate-100" />
+                    <div className="h-3 w-5/6 rounded bg-slate-100" />
+                    <div className="h-3 w-4/6 rounded bg-slate-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && !result && (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 py-16 text-center">
+              <p className="text-sm font-medium text-slate-500">总结结果将显示在这里</p>
+              <p className="mt-2 text-xs text-slate-400">
+                左侧粘贴或上传内容，点击「开始总结」
+              </p>
+            </div>
+          )}
+
+          {result && !loading && (
+            <>
+              {activeEntry?.sourceExcerpt && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-600">
+                  <span className="font-medium text-slate-700">原文摘要：</span>
+                  {activeEntry.sourceExcerpt}
+                </div>
+              )}
+              <ResultPanel
+                result={result}
+                initialLanguage={resultLanguage}
+                purpose={getPurposeOption(purpose)}
+                sourceContext={sourceContext}
+              />
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
