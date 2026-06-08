@@ -328,7 +328,7 @@ export function SummarizerApp() {
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
         <div
-          className={`overflow-hidden rounded-2xl border bg-white shadow-card transition-colors ${
+          className={`rounded-2xl border bg-white shadow-card transition-colors ${
             isDragging
               ? "border-brand-400 ring-2 ring-brand-100"
               : "border-slate-200/80"
@@ -339,8 +339,8 @@ export function SummarizerApp() {
           onDrop={handleDrop}
         >
           <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <h2 className="text-base font-semibold text-slate-900">
                   粘贴或上传内容
                 </h2>
@@ -348,11 +348,18 @@ export function SummarizerApp() {
                   支持拖拽上传 · PDF · Word · 图片 OCR · 文本
                 </p>
               </div>
-              {fileName && (
-                <span className="hidden shrink-0 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 sm:inline-block">
-                  📄 {fileName}
-                </span>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <PurposeSelector
+                  value={purpose}
+                  onChange={setPurpose}
+                  disabled={isBusy}
+                />
+                {fileName && (
+                  <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
+                    📄 {fileName}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -383,112 +390,112 @@ export function SummarizerApp() {
               disabled={isBusy}
             />
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={ACCEPTED_TYPES.join(",")}
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                  disabled={isBusy}
-                />
-                <label
-                  htmlFor="file-upload"
-                  className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 ${isBusy ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
-                >
-                  {extracting ? <SpinnerIcon /> : <UploadIcon />}
-                  {extracting
-                    ? extractStatus ?? "正在读取文档…"
-                    : "选择文件"}
-                </label>
-                <PurposeSelector
-                  value={purpose}
-                  onChange={setPurpose}
-                  disabled={isBusy}
-                />
-                <span className="hidden text-xs text-slate-400 lg:inline">
-                  或拖拽到上方
-                </span>
-                {extractNotice && !extracting && (
-                  <span className="text-xs text-emerald-600">{extractNotice}</span>
-                )}
-                {text && (
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="text-xs text-slate-400 transition hover:text-slate-600"
+            <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPTED_TYPES.join(",")}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
                     disabled={isBusy}
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 ${isBusy ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
                   >
-                    清空
-                  </button>
-                )}
+                    {extracting ? <SpinnerIcon /> : <UploadIcon />}
+                    {extracting
+                      ? extractStatus ?? "正在读取文档…"
+                      : "选择文件"}
+                  </label>
+                  <span className="hidden text-xs text-slate-400 md:inline">
+                    或拖拽到上方
+                  </span>
+                  {extractNotice && !extracting && (
+                    <span className="text-xs text-emerald-600">{extractNotice}</span>
+                  )}
+                  {text && (
+                    <button
+                      type="button"
+                      onClick={handleClear}
+                      className="text-xs text-slate-400 transition hover:text-slate-600"
+                      disabled={isBusy}
+                    >
+                      清空
+                    </button>
+                  )}
+                </div>
+                <span
+                  className={`text-xs tabular-nums ${
+                    charCount < MIN_CHARS
+                      ? "text-slate-400"
+                      : charCount > MAX_CHARS * 0.9
+                        ? "text-rose-600"
+                        : "text-slate-500"
+                  }`}
+                >
+                  {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
+                  {charCount < MIN_CHARS && ` （至少 ${MIN_CHARS} 字）`}
+                </span>
               </div>
-              <span
-                className={`text-xs tabular-nums ${
-                  charCount < MIN_CHARS
-                    ? "text-slate-400"
-                    : charCount > MAX_CHARS * 0.9
-                      ? "text-rose-600"
-                      : "text-slate-500"
-                }`}
-              >
-                {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
-                {charCount < MIN_CHARS && ` （至少 ${MIN_CHARS} 字）`}
-              </span>
+
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={includeSimpleExplanation}
+                      onChange={(e) =>
+                        setIncludeSimpleExplanation(e.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      disabled={isBusy}
+                    />
+                    <span className="text-xs text-slate-700 sm:text-sm">
+                      通俗解释
+                    </span>
+                  </label>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500 sm:text-sm">
+                      输出语言
+                    </span>
+                    <select
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value as Language)}
+                      className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 sm:px-2.5 sm:py-1.5 sm:text-sm"
+                      disabled={isBusy}
+                    >
+                      <option value="auto">自动检测</option>
+                      <option value="zh">中文</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!canSubmit}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <SpinnerIcon />
+                      正在分析…
+                    </>
+                  ) : (
+                    <>
+                      <SparkIcon />
+                      开始总结
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-card sm:px-5">
-          <div className="flex flex-wrap items-center gap-4">
-            <label className="flex cursor-pointer items-center gap-2.5">
-              <input
-                type="checkbox"
-                checked={includeSimpleExplanation}
-                onChange={(e) => setIncludeSimpleExplanation(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                disabled={isBusy}
-              />
-              <span className="text-sm text-slate-700">
-                包含通俗解释
-                <span className="ml-1 text-xs text-slate-400">（Simple Explanation）</span>
-              </span>
-            </label>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">输出语言</span>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Language)}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
-                disabled={isBusy}
-              >
-                <option value="auto">自动检测</option>
-                <option value="zh">中文</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-          >
-            {loading ? (
-              <>
-                <SpinnerIcon />
-                正在分析…
-              </>
-            ) : (
-              <>
-                <SparkIcon />
-                开始总结
-              </>
-            )}
-          </button>
         </div>
           </form>
 

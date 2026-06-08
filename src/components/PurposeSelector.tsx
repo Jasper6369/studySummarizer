@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   getPurposeOption,
   SUMMARY_PURPOSES,
@@ -19,40 +20,141 @@ export function PurposeSelector({
   disabled,
 }: PurposeSelectorProps) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = useState<{ top: number; left: number; width: number }>({
+    top: 0,
+    left: 0,
+    width: 320,
+  });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const selected = getPurposeOption(value);
+
+  const updateMenuPosition = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const width = Math.max(rect.width, 288);
+    const left = Math.min(rect.left, window.innerWidth - width - 12);
+    const top = rect.bottom + 8;
+
+    setMenuStyle({ top, left, width });
+  };
 
   useEffect(() => {
     if (!open) return;
 
+    updateMenuPosition();
+
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
       if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        buttonRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
       ) {
-        setOpen(false);
+        return;
       }
+      setOpen(false);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
 
+    const handleReposition = () => updateMenuPosition();
+
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
     };
   }, [open]);
 
+  const menu =
+    open &&
+    createPortal(
+      <div
+        ref={menuRef}
+        role="listbox"
+        aria-label="总结的目的"
+        style={{
+          top: menuStyle.top,
+          left: menuStyle.left,
+          width: menuStyle.width,
+        }}
+        className="fixed z-[9999] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+      >
+        <div className="border-b border-slate-100 px-3 py-2">
+          <p className="text-xs font-medium text-slate-900">
+            我总结这篇文章是为了什么？
+          </p>
+          <p className="text-[11px] text-slate-500">
+            选择后 AI 会生成针对性的总结
+          </p>
+        </div>
+        <ul className="max-h-72 overflow-y-auto p-1.5">
+          {SUMMARY_PURPOSES.map((purpose) => {
+            const isSelected = value === purpose.id;
+
+            return (
+              <li key={purpose.id}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onChange(purpose.id);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition ${
+                    isSelected
+                      ? "bg-brand-50 text-brand-800"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <span className="text-base leading-none" aria-hidden>
+                    {purpose.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{purpose.labelZh}</p>
+                    <p className="text-[11px] text-slate-400">
+                      {purpose.labelEn}
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
+                      {purpose.description}
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <span className="mt-0.5 text-xs text-brand-600">✓</span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>,
+      document.body
+    );
+
   return (
-    <div ref={containerRef} className="relative">
+    <>
       <button
+        ref={buttonRef}
         type="button"
         disabled={disabled}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          setOpen((prev) => !prev);
+          if (!open) {
+            requestAnimationFrame(updateMenuPosition);
+          }
+        }}
         aria-expanded={open}
         aria-haspopup="listbox"
         className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
@@ -63,68 +165,14 @@ export function PurposeSelector({
       >
         <TargetIcon />
         <span>总结的目的</span>
-        <span className="text-slate-300">·</span>
-        <span className="text-brand-700">
+        <span className="hidden text-slate-300 sm:inline">·</span>
+        <span className="hidden text-brand-700 sm:inline">
           {selected.icon} {selected.labelZh}
         </span>
         <ChevronIcon open={open} />
       </button>
-
-      {open && (
-        <div
-          role="listbox"
-          aria-label="总结的目的"
-          className="absolute left-0 top-full z-20 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg sm:w-80"
-        >
-          <div className="border-b border-slate-100 px-3 py-2">
-            <p className="text-xs font-medium text-slate-900">我总结这篇文章是为了什么？</p>
-            <p className="text-[11px] text-slate-500">
-              选择后 AI 会生成针对性的总结
-            </p>
-          </div>
-          <ul className="max-h-72 overflow-y-auto p-1.5">
-            {SUMMARY_PURPOSES.map((purpose) => {
-              const isSelected = value === purpose.id;
-
-              return (
-                <li key={purpose.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      onChange(purpose.id);
-                      setOpen(false);
-                    }}
-                    className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition ${
-                      isSelected
-                        ? "bg-brand-50 text-brand-800"
-                        : "text-slate-700 hover:bg-slate-50"
-                    }`}
-                  >
-                    <span className="text-base leading-none" aria-hidden>
-                      {purpose.icon}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{purpose.labelZh}</p>
-                      <p className="text-[11px] text-slate-400">
-                        {purpose.labelEn}
-                      </p>
-                      <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
-                        {purpose.description}
-                      </p>
-                    </div>
-                    {isSelected && (
-                      <span className="mt-0.5 text-xs text-brand-600">✓</span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-    </div>
+      {menu}
+    </>
   );
 }
 
